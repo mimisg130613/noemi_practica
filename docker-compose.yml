@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: noemi-practica-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: miapp
+      POSTGRES_USER: usuario
+      POSTGRES_PASSWORD: clave123
+    volumes:
+      - noemi_practica_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usuario -d miapp"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: ./app
+    container_name: noemi-practica-app
+    restart: unless-stopped
+    ports:
+      - "5077:5000"
+    environment:
+      DB_HOST: db
+      DB_NAME: miapp
+      DB_USER: usuario
+      DB_PASSWORD: clave123
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  noemi_practica_pgdata:
